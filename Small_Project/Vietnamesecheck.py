@@ -1,6 +1,8 @@
-from transformers import pipeline
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
-corrector = pipeline("text2text-generation", model="bmd1905/vietnamese-correction-v2")
+MODEL_NAME = "bmd1905/vietnamese-correction-v2"
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
 
 # Example
 MAX_LENGTH = 512
@@ -22,8 +24,10 @@ texts = [
 ]
 
 # Batch prediction
-predictions = corrector(texts, max_length=MAX_LENGTH)
+inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=MAX_LENGTH)
+outputs = model.generate(**inputs, max_length=MAX_LENGTH)
+predictions = tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
 # Print predictions
-for text, pred in zip(texts, predictions):
-    print("- " + pred['generated_text'])
+for pred in predictions:
+    print("- " + pred)
